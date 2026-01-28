@@ -270,20 +270,20 @@ const gpio_volume_cfg_t *config_gpio_volume_get()
 	static bool initialized = false;
 	if (initialized) return &gpio_vol;
 
-	gpio_vol.dacmax = false,
-	gpio_vol.visumax = false,
-	gpio_vol.lsb0 = -1,
-	gpio_vol.lsb0_level = 1,
-	gpio_vol.lsb1 = -1,
-	gpio_vol.lsb1_level = 1,
-	gpio_vol.high0 = -1,
-	gpio_vol.high0_level = 1,
-	gpio_vol.high1 = -1,
-	gpio_vol.high1_level = 1,
-	gpio_vol.width = 0,
-	gpio_vol.time_ms = 10,
-	gpio_vol.loud = true,
-	gpio_vol.mode = GPIO_VOLUME_MODE_BINARY
+	gpio_vol.dacmax = false;
+	gpio_vol.visumax = false;
+	gpio_vol.lsb0 = -1;
+	gpio_vol.lsb0_level = 1;
+	gpio_vol.lsb1 = -1;
+	gpio_vol.lsb1_level = 1;
+	gpio_vol.high0 = -1;
+	gpio_vol.high0_level = 1;
+	gpio_vol.high1 = -1;
+	gpio_vol.high1_level = 1;
+	gpio_vol.width = 0;
+	gpio_vol.time_ms = 10;
+	gpio_vol.loud = true;
+	gpio_vol.mode = GPIO_VOLUME_MODE_BINARY;
 
 	char *config = config_alloc_get_default(NVS_TYPE_STR, "gpio_volume", NULL, 0);
 
