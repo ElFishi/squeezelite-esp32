@@ -75,7 +75,7 @@ static void parse_gpio_with_level(const char *s, const char *k, int *gpio, int *
 	}
 }
 
-static inline void gv_gpio_out(int gpio, int level)
+static inline void gv_gpio_exp_out(int gpio, int level)
 {
 	if (gpio < GPIO_NUM_MAX)
 	{
@@ -288,8 +288,8 @@ static void latch_byte(uint32_t to_loud_mask, uint32_t to_quiet_mask)
 		if (to_quiet_mask)
 		{
 			// Set direction for Quiet
-			gv_gpio_out(cfg.high0, cfg.high0_level);
-			gv_gpio_out(cfg.high1, !cfg.high1_level);
+			gv_gpio_exp_out(cfg.high0, cfg.high0_level);
+			gv_gpio_exp_out(cfg.high1, !cfg.high1_level);
 
 			// Activate select pins for bits moving to Quiet
 			gpio_exp_set_level_multi(cfg.lsb0, to_quiet_mask, active_vals_quiet, NULL);
@@ -302,15 +302,15 @@ static void latch_byte(uint32_t to_loud_mask, uint32_t to_quiet_mask)
 			gpio_exp_set_level_multi(cfg.lsb0, to_quiet_mask, inactive_vals_quiet, NULL);
 
 			// Reset direction
-			gv_gpio_out(cfg.high0, !cfg.high0_level);
+			gv_gpio_exp_out(cfg.high0, !cfg.high0_level);
 		}
 
 		// 2. Toggle to LOUD (high1 active, high0 inactive)
 		if (to_loud_mask)
 		{
 			// Set direction for Loud
-			gv_gpio_out(cfg.high1, cfg.high1_level);
-			gv_gpio_out(cfg.high0, !cfg.high0_level);
+			gv_gpio_exp_out(cfg.high1, cfg.high1_level);
+			gv_gpio_exp_out(cfg.high0, !cfg.high0_level);
 
 			// Activate select pins for bits moving to Loud
 			gpio_exp_set_level_multi(cfg.lsb0, to_loud_mask, active_vals_loud, NULL);
@@ -323,7 +323,7 @@ static void latch_byte(uint32_t to_loud_mask, uint32_t to_quiet_mask)
 			gpio_exp_set_level_multi(cfg.lsb0, to_loud_mask, inactive_vals_loud, NULL);
 
 			// Reset direction
-			gv_gpio_out(cfg.high1, !cfg.high1_level);
+			gv_gpio_exp_out(cfg.high1, !cfg.high1_level);
 		}
 
 		int64_t end_time = esp_timer_get_time();
@@ -346,11 +346,11 @@ static void latch_byte(uint32_t to_loud_mask, uint32_t to_quiet_mask)
 	}
 }
 
-#define VOLUME_LOW_GAIN_THRESHOLD 926
-#define VOLUME_DB_PER_STEP_HIGH 0.4950495f  // 50/101
-#define VOLUME_DB_PER_STEP_LOW 1.4851485f   // 150/101
-#define VOLUME_LOW_GAIN_OFFSET 36.997f
-#define VOLUME_LOW_STEP_OFFSET 75.5f
+static const unsigned int VOLUME_LOW_GAIN_THRESHOLD = 926;
+static const float VOLUME_DB_PER_STEP_HIGH = 0.4950495f;	// 50/101
+static const float VOLUME_DB_PER_STEP_LOW = 1.4851485f;		// 150/101
+static const float VOLUME_LOW_GAIN_OFFSET = 36.997f;
+static const float VOLUME_LOW_STEP_OFFSET = 75.5f;
 
 static uint8_t gain_to_volume(unsigned gain) {
 	// 1. Convert 16-bit gain to attenuation value

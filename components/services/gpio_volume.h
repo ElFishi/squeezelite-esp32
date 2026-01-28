@@ -10,20 +10,20 @@ typedef enum {
 } gpio_volume_mode_t;
 
 typedef struct {
-	int dacmax;
-	int visumax;
-	int lsb0;
-	int lsb0_level;
-	int lsb1;
-	int lsb1_level;
-	int high0;
-	int high0_level;
-	int high1;
-	int high1_level;
-	int width;
-	int time_ms;
-	bool loud;
 	gpio_volume_mode_t mode;
+	int width;          /* Number of GPIO bits used */
+	int lsb0;           /* Start GPIO for primary bank */
+	int lsb0_level;     /* Active level for lsb0 (0 or 1) */
+	int lsb1;           /* Start GPIO for secondary bank (Latching Mode A) */
+	int lsb1_level;     /* Active level for lsb1 */
+	int high0;          /* Direction/Rail GPIO 0 (Latching Mode B) */
+	int high0_level;    /* Active level for high0 */
+	int high1;          /* Direction/Rail GPIO 1 (Latching Mode B) */
+	int high1_level;    /* Active level for high1 */
+	int time_ms;        /* Pulse duration for latching relays */
+	bool dacmax;        /* Fixed DAC max setting */
+	bool visumax;       /* Fixed visualization max setting */
+	bool loud;          /* Normal or inverted logic for binary mode */
 } gpio_volume_cfg_t;
 
 typedef struct {
@@ -35,5 +35,4 @@ typedef struct {
 bool gpio_volume_init(const char *cfg);
 void gpio_volume_apply_startup_volume(unsigned gain);
 void gpio_volume_update(unsigned gain);
-int  gpio_volume_fixed(void);
 gpio_max_mode_t gpio_volume_get_mode(void);

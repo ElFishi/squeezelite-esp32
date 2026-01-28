@@ -325,7 +325,7 @@ Note that PWM ("led_brightness" below) is not supported for expanded GPIOs and t
 GPIO Volume Control allows to control external volume control hardware such as relay-based attenuators via a GPIO expander.
 Configure via the web interface under NVS Editor with the key `gpio_volume`:
 ```
-mode=<mode>,lsb0=<pin>[:level],width=<bits>[,lsb1=<pin>[:level]][,high0=<pin>[:level],high1=<pin>[:level]][,dacmaxvol=<0|1>][,time=<ms>][,loud=<0|1>]
+mode=<mode>,lsb0=<pin>[:level],width=<bits>[,lsb1=<pin>[:level]][,high0=<pin>[:level],high1=<pin>[:level]][,dacmax=<0|1>][,visumax=<0|1>][,time=<ms>][,loud=<0|1>]
 ```
 
 Required Parameters
@@ -368,7 +368,7 @@ Optional Parameters
 
 Binary Mode
 
-Outputs volume as a binary number across the GPIO pins. Volumes 0 ... 100 are mapped to 0 ... 2^(width - 1)
+Outputs volume as a binary number across the GPIO pins. Volumes 0 ... 100 are mapped to 0 ... 2^width - 1
 
 LED Bar Mode
 

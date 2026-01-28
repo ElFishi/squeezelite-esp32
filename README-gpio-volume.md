@@ -1,4 +1,5 @@
 # GPIO Volume Control
+# GPIO Volume Control
 
 GPIO Volume Control allows you to use GPIO pins via GPIO expanders to control external hardware such as relay-based attenuators or LED bar graphs.
 
@@ -6,7 +7,7 @@ GPIO Volume Control allows you to use GPIO pins via GPIO expanders to control ex
 
 Configure via the web interface under NVS Editor with the key `gpio_volume`:
 ```
-mode=<mode>,lsb0=<pin>[:level],width=<bits>[,lsb1=<pin>[:level]][,high0=<pin>[:level],high1=<pin>[:level]][,dacmaxvol=<0|1>][,time=<ms>][,loud=<0|1>]
+mode=<mode>,lsb0=<pin>[:level],width=<bits>[,lsb1=<pin>[:level]][,high0=<pin>[:level],high1=<pin>[:level]][,dacmax=<0|1>][,visumax=<0|1>][,time=<ms>][,loud=<0|1>]
 ```
 
 ### Required Parameters
@@ -50,7 +51,7 @@ mode=<mode>,lsb0=<pin>[:level],width=<bits>[,lsb1=<pin>[:level]][,high0=<pin>[:l
 
 ### Binary Mode
 
-Outputs volume as a binary number across the GPIO pins. Volumes 0 ... 100 are mapped to 0 ... 2^(width) - 1.
+Outputs volume as a binary number across the GPIO pins. Volumes 0 ... 100 are mapped to 0 ... 2^width - 1.
 
 **Example:** 6-bit binary (64 steps)
 ```
@@ -177,12 +178,12 @@ mode=ledbar,dacmaxvol=0,lsb0=64,width=10,loud=0
 
 ### Latching relays in matrix config:
 ```
-mode=latching,dacmaxvol=1,lsb0=64,width=7,high0=73,high1=74,time=8
+mode=latching,dacmaxvol=1,lsb0=64,width=7,high0=72,high1=73,time=8
 ```
 
 ### Latching relays in matrix config with inverted rail:
 ```
-mode=latching,dacmaxvol=1,lsb0=64:1,width=7,high0=73:0,high1=73:0,time=8
+mode=latching,dacmaxvol=1,lsb0=64:1,width=7,high0=72:0,high1=73:0,time=8
 ```
 
 ### Latching relays with separate set/reset drivers:

@@ -266,22 +266,24 @@ void config_eth_init( eth_config_t *  target ){
  */
 const gpio_volume_cfg_t *config_gpio_volume_get()
 {
-	static gpio_volume_cfg_t gpio_vol = {
-		.dacmax = false,
-		.visumax = false,
-		.lsb0 = -1,
-		.lsb0_level = 1,
-		.lsb1 = -1,
-		.lsb1_level = 1,
-		.high0 = -1,
-		.high0_level = 1,
-		.high1 = -1,
-		.high1_level = 1,
-		.width = 0,
-		.time_ms = 10,
-		.loud = true,
-		.mode = GPIO_VOLUME_MODE_BINARY
-	};
+	static gpio_volume_cfg_t gpio_vol;
+	static bool initialized = false;
+	if (initialized) return &gpio_vol;
+
+	gpio_vol.dacmax = false,
+	gpio_vol.visumax = false,
+	gpio_vol.lsb0 = -1,
+	gpio_vol.lsb0_level = 1,
+	gpio_vol.lsb1 = -1,
+	gpio_vol.lsb1_level = 1,
+	gpio_vol.high0 = -1,
+	gpio_vol.high0_level = 1,
+	gpio_vol.high1 = -1,
+	gpio_vol.high1_level = 1,
+	gpio_vol.width = 0,
+	gpio_vol.time_ms = 10,
+	gpio_vol.loud = true,
+	gpio_vol.mode = GPIO_VOLUME_MODE_BINARY
 
 	char *config = config_alloc_get_default(NVS_TYPE_STR, "gpio_volume", NULL, 0);
 
@@ -337,7 +339,7 @@ const gpio_volume_cfg_t *config_gpio_volume_get()
 				}
 			}
 		}
-		
+
 		PARSE_PARAM(config, "width", '=', gpio_vol.width);
 		PARSE_PARAM(config, "time", '=', gpio_vol.time_ms);
 
@@ -355,6 +357,9 @@ const gpio_volume_cfg_t *config_gpio_volume_get()
 
 		free(config);
 	}
+
+	initialized = true;
+
 	return &gpio_vol;
 }
 

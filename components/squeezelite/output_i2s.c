@@ -450,7 +450,7 @@ void output_init_i2s(log_level level, char *device, unsigned output_buf_size, ch
 	char *gv_cfg = config_alloc_get(NVS_TYPE_STR, "gpio_volume");
 	if (gv_cfg)
 	{
-		LOG_INFO("TAG", "Found gpio_volume config: %s", gv_cfg);
+		LOG_INFO("Found gpio_volume config: %s", gv_cfg);
 		if (gpio_volume_init(gv_cfg))
 		{
 			unsigned v = (output.gainL > output.gainR) ? output.gainL : output.gainR;
@@ -460,7 +460,7 @@ void output_init_i2s(log_level level, char *device, unsigned output_buf_size, ch
 	}
 	else
 	{
-		LOG_WARN("TAG", "gpio_volume key NOT FOUND in NVS");
+		LOG_WARN("gpio_volume key NOT FOUND in NVS");
 	}
 
     // do we want stats

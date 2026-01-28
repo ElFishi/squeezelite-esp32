@@ -239,7 +239,7 @@ menu "Squeezelite-ESP32"
 				help
 					Configure external volume control hardware (relay attenuators, LED bars).
 
-					Format: mode=<ledbar|binary|latching>,width=<1-16>,lsb0=<pin>[,lsb1=<pin>][,dacmaxvol=0|1][,time=<ms>][,loud=0|1][,high0=<pin>,high1=<pin>][,lowON=0|1][,highON=0|1]
+					Format: mode=<mode>,lsb0=<pin>[:level],width=<bits>[,lsb1=<pin>[:level]][,high0=<pin>[:level],high1=<pin>[:level]][,dacmax=<0|1>][,visumax=<0|1>][,time=<ms>][,loud=<0|1>]
 		endmenu
 
 		menu "SPDIF settings"
