@@ -32,7 +32,8 @@ typedef struct {
 	bool visu_fixed;	// true = visualization at max volume, false = follows volume setting
 } gpio_max_mode_t;
 
-bool gpio_volume_init(const char *cfg);
+bool gpio_volume_init(const gpio_volume_cfg_t *cfg);
 void gpio_volume_apply_startup_volume(unsigned gain);
 void gpio_volume_update(unsigned gain);
 gpio_max_mode_t gpio_volume_get_mode(void);
+const gpio_volume_cfg_t *config_gpio_volume_get();

@@ -158,42 +158,42 @@ The system receives volume as a 16-bit gain value from LMS (Logitech Media Serve
 
 ### Simple 6-bit resistor ladder (R-2R DAC):
 ```
-mode=binary,dacmaxvol=1,lsb0=64,width=6
+mode=binary,dacmax=1,lsb0=64,width=6
 ```
 
 ### 6-bit with active-low outputs:
 ```
-mode=binary,dacmaxvol=1,lsb0=64,width=6,loud=0
+mode=binary,dacmax=1,lsb0=64,width=6,loud=0
 ```
 
 ### 10-LED volume display:
 ```
-mode=ledbar,dacmaxvol=0,lsb0=64,width=10,loud=1
+mode=ledbar,dacmax=0,lsb0=64,width=10,loud=1
 ```
 
 ### 10-LED with active-low driver:
 ```
-mode=ledbar,dacmaxvol=0,lsb0=64,width=10,loud=0
+mode=ledbar,dacmax=0,lsb0=64,width=10,loud=0
 ```
 
 ### Latching relays in matrix config:
 ```
-mode=latching,dacmaxvol=1,lsb0=64,width=7,high0=72,high1=73,time=8
+mode=latching,dacmax=1,lsb0=64,width=7,high0=72,high1=73,time=8
 ```
 
 ### Latching relays in matrix config with inverted rail:
 ```
-mode=latching,dacmaxvol=1,lsb0=64:1,width=7,high0=72:0,high1=73:0,time=8
+mode=latching,dacmax=1,lsb0=64:1,width=7,high0=72:0,high1=73:0,time=8
 ```
 
 ### Latching relays with separate set/reset drivers:
 ```
-mode=latching,dacmaxvol=1,lsb0=64,lsb1=72,width=6,time=12
+mode=latching,dacmax=1,lsb0=64,lsb1=72,width=6,time=12
 ```
 
 ### Latching relays with mixed polarity drivers:
 ```
-mode=latching,dacmaxvol=1,lsb0=64:1,lsb1=72:0,width=6,time=12
+mode=latching,dacmax=1,lsb0=64:1,lsb1=72:0,width=6,time=12
 ```
 
 This configuration may be useful when using different driver ICs for the two banks that have opposite logic levels.
@@ -205,7 +205,7 @@ This configuration may be useful when using different driver ICs for the two ban
 - **Latching relays not firing**: Increase `time` parameter (try values from 5-20ms)
 - **Relays clicking but not changing state**: Check `:level` configuration matches your driver polarity
 - **Volume jumps**: Check that `width` matches your hardware bit depth
-- **DAC still controlling volume**: Set `dacmaxvol=1` to force DAC to maximum
+- **DAC still controlling volume**: Set `dacmax=1` to force DAC to maximum
 - **Inconsistent behavior**: Verify power supply can handle simultaneous relay switching
 
 ## See Also

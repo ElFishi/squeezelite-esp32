@@ -445,22 +445,30 @@ void output_init_i2s(log_level level, char *device, unsigned output_buf_size, ch
 	else adac->speaker(true);
 	
 	adac->headset(jack_inserted_svc());	
-    
+
 	// Initialize GPIO Volume Service
-	char *gv_cfg = config_alloc_get(NVS_TYPE_STR, "gpio_volume");
-	if (gv_cfg)
+	const gpio_volume_cfg_t *gv_cfg = config_gpio_volume_get();
+	if (gv_cfg && gv_cfg->width > 0 && gv_cfg->lsb0 >= 0)
 	{
-		LOG_INFO("Found gpio_volume config: %s", gv_cfg);
+		LOG_INFO("Found gpio_volume config: mode=%d width=%d lsb0=%d:%d lsb1=%d:%d high0=%d:%d high1=%d:%d time=%d loud=%d dacmax=%d visumax=%d",
+					gv_cfg->mode, gv_cfg->width,
+					gv_cfg->lsb0, gv_cfg->lsb0_level,
+					gv_cfg->lsb1, gv_cfg->lsb1_level,
+					gv_cfg->high0, gv_cfg->high0_level,
+					gv_cfg->high1, gv_cfg->high1_level,
+					gv_cfg->time_ms, gv_cfg->loud,
+					gv_cfg->dacmax, gv_cfg->visumax
+				);
+		
 		if (gpio_volume_init(gv_cfg))
 		{
 			unsigned v = (output.gainL > output.gainR) ? output.gainL : output.gainR;
 			gpio_volume_apply_startup_volume(v);
 		}
-		free(gv_cfg);
 	}
 	else
 	{
-		LOG_WARN("gpio_volume key NOT FOUND in NVS");
+		LOG_WARN("gpio_volume key NOT FOUND or invalid in NVS");
 	}
 
     // do we want stats

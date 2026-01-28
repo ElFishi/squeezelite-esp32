@@ -22,59 +22,6 @@ static bool latching_initialized = false;
  * helpers
  * ========================================================= */
 
-static int get_int(const char *s, const char *k, int def)
-{
-	char *p = strstr(s, k);
-	if (!p)
-		return def;
-	p += strlen(k);
-	if (*p != '=')
-		return def;
-	return atoi(p + 1);
-}
-
-static bool get_bool(const char *s, const char *k, bool def)
-{
-	return get_int(s, k, def ? 1 : 0) != 0;
-}
-
-static gpio_volume_mode_t get_mode(const char *s)
-{
-	if (strstr(s, "mode=ledbar"))
-		return GPIO_VOLUME_MODE_LEDBAR;
-	if (strstr(s, "mode=latching"))
-		return GPIO_VOLUME_MODE_LATCHING;
-	return GPIO_VOLUME_MODE_BINARY;
-}
-
-static void parse_gpio_with_level(const char *s, const char *k, int *gpio, int *level, int def_gpio, int def_level)
-{
-	char *p = strstr(s, k);
-	if (!p) {
-		*gpio = def_gpio;
-		*level = def_level;
-		return;
-	}
-	
-	p += strlen(k);
-	if (*p != '=') {
-		*gpio = def_gpio;
-		*level = def_level;
-		return;
-	}
-	
-	p++; // Skip '='
-	*gpio = atoi(p);
-	
-	// Look for optional :level suffix
-	char *colon = strchr(p, ':');
-	if (colon && (colon < strchr(p, ',') || !strchr(p, ','))) {
-		*level = atoi(colon + 1);
-	} else {
-		*level = def_level;
-	}
-}
-
 static inline void gv_gpio_exp_out(int gpio, int level)
 {
 	if (gpio < GPIO_NUM_MAX)
@@ -98,33 +45,19 @@ static inline void gv_gpio_exp_out(int gpio, int level)
  * initialization
  * ========================================================= */
 
-bool gpio_volume_init(const char *cfgstr)
+bool gpio_volume_init(const gpio_volume_cfg_t *cfg_in)
 {
-	if (!cfgstr || !*cfgstr)
+	if (!cfg_in)
 	{
-		ESP_LOGI(TAG, "gpio_volume not configured");
+		ESP_LOGI(TAG, "Not configured");
 		return false;
 	}
 
-	// memset(&cfg, 0, sizeof(cfg));
-
-	cfg.mode = get_mode(cfgstr);
-
-	// Parse GPIOs with optional level suffixes
-	parse_gpio_with_level(cfgstr, "lsb0", &cfg.lsb0, &cfg.lsb0_level, -1, 1);
-	parse_gpio_with_level(cfgstr, "lsb1", &cfg.lsb1, &cfg.lsb1_level, -1, 1);
-	parse_gpio_with_level(cfgstr, "high0", &cfg.high0, &cfg.high0_level, -1, 1);
-	parse_gpio_with_level(cfgstr, "high1", &cfg.high1, &cfg.high1_level, -1, 1);
-
-	cfg.width = get_int(cfgstr, "width", 0);
-	cfg.time_ms = get_int(cfgstr, "time", 10);
-
-	cfg.dacmax = get_bool(cfgstr, "dacmax", false);
-	cfg.visumax = get_bool(cfgstr, "visumax", false);
-	cfg.loud = get_bool(cfgstr, "loud", true);
+	// Copy the parsed configuration into static config
+	memcpy(&cfg, cfg_in, sizeof(gpio_volume_cfg_t));
 
 	ESP_LOGI(TAG,
-			 "gpio_volume: mode=%d dacmax=%d visumax=%d width=%d lsb0=%d:%d lsb1=%d:%d high0=%d:%d high1=%d:%d time=%d",
+			 "mode=%d dacmax=%d visumax=%d width=%d lsb0=%d:%d lsb1=%d:%d high0=%d:%d high1=%d:%d time=%d",
 			 cfg.mode, cfg.dacmax, cfg.visumax, cfg.width, 
 			 cfg.lsb0, cfg.lsb0_level, cfg.lsb1, cfg.lsb1_level,
 			 cfg.high0, cfg.high0_level, cfg.high1, cfg.high1_level, 
@@ -132,7 +65,7 @@ bool gpio_volume_init(const char *cfgstr)
 
 	if (cfg.width <= 0 || cfg.lsb0 < 0)
 	{
-		ESP_LOGE(TAG, "Invalid gpio_volume configuration");
+		ESP_LOGE(TAG, "Invalid configuration");
 		return false;
 	}
 
@@ -190,7 +123,7 @@ bool gpio_volume_init(const char *cfgstr)
 
 	configured = true;
 	latching_initialized = false;
-	ESP_LOGI(TAG, "gpio_volume initialization complete");
+	ESP_LOGI(TAG, "Initialization complete");
 
 	return true;
 }

@@ -344,9 +344,13 @@ const gpio_volume_cfg_t *config_gpio_volume_get()
 		PARSE_PARAM(config, "time", '=', gpio_vol.time_ms);
 
 		// Handle Booleans 
-		gpio_vol.dacmax = strcasestr(config, "dacmax=1") ? true : false;
-		gpio_vol.visumax = strcasestr(config, "visumax=1") ? true : false;
-		gpio_vol.loud = strcasestr(config, "loud=0") ? false : true;
+		int dacmax_val = 0, visumax_val = 0, loud_val = 1;
+		PARSE_PARAM(config, "dacmax", '=', dacmax_val);
+		PARSE_PARAM(config, "visumax", '=', visumax_val);
+		PARSE_PARAM(config, "loud", '=', loud_val);
+		gpio_vol.dacmax = (dacmax_val == 1);
+		gpio_vol.visumax = (visumax_val == 1);
+		gpio_vol.loud = (loud_val != 0);
 
 		if (strcasestr(config, "mode=ledbar"))
 			gpio_vol.mode = GPIO_VOLUME_MODE_LEDBAR;
