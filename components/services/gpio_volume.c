@@ -14,6 +14,7 @@ static gpio_volume_cfg_t cfg;
 static bool configured = false;
 static uint8_t last_volume = 0;
 static unsigned last_gain = 0;
+static int cfg_time_ticks;
 
 /* latching state */
 static bool latching_initialized = false;
@@ -69,6 +70,11 @@ bool gpio_volume_init(const gpio_volume_cfg_t *cfg_in)
 		return false;
 	}
 
+	// make sure ticks last at least the configure latch time
+	cfg_time_ticks = pdMS_TO_TICKS(cfg.time_ms);
+	cfg_time_ticks += cfg_time_ticks==0?2:1;
+
+
 	// --- 1. Initialize GPIOs (Select or Quiet) ---
 	int inactive_level_lsb0 = !cfg.lsb0_level;
 	for (int i = 0; i < cfg.width; i++) {
@@ -119,7 +125,7 @@ bool gpio_volume_init(const gpio_volume_cfg_t *cfg_in)
 		}
 	}
 	
-	vTaskDelay(2); // Give expander time to update 
+	vTaskDelay(pdMS_TO_TICKS(20)); // Give expander time to update 
 
 	configured = true;
 	latching_initialized = false;
@@ -189,7 +195,10 @@ static void latch_byte(uint32_t to_loud_mask, uint32_t to_quiet_mask)
 		int64_t coil_on_time = esp_timer_get_time();
 
 		// 3. Wait pulse time, precise timing, blocking
-		esp_rom_delay_us(cfg.time_ms * 1000);
+		// esp_rom_delay_us(cfg.time_ms * 1000);
+
+		// 3. Wait pulse time, minimum timing, non-blocking
+		vTaskDelay(cfg_time_ticks);
 
 		int64_t coil_off_time = esp_timer_get_time();
 
@@ -228,7 +237,9 @@ static void latch_byte(uint32_t to_loud_mask, uint32_t to_quiet_mask)
 			gpio_exp_set_level_multi(cfg.lsb0, to_quiet_mask, active_vals_quiet, NULL);
 
 			quiet_coil_on = esp_timer_get_time();
-			esp_rom_delay_us(cfg.time_ms * 1000);
+			// esp_rom_delay_us(cfg.time_ms * 1000);
+			vTaskDelay(cfg_time_ticks);
+
 			quiet_coil_off = esp_timer_get_time(); 
 
 			// Deactivate select pins
@@ -249,7 +260,9 @@ static void latch_byte(uint32_t to_loud_mask, uint32_t to_quiet_mask)
 			gpio_exp_set_level_multi(cfg.lsb0, to_loud_mask, active_vals_loud, NULL);
 
 			loud_coil_on = esp_timer_get_time();
-			esp_rom_delay_us(cfg.time_ms * 1000);
+			// esp_rom_delay_us(cfg.time_ms * 1000);
+			vTaskDelay(cfg_time_ticks);
+
 			loud_coil_off = esp_timer_get_time();
 
 			// Deactivate select pins
