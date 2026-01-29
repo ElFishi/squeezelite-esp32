@@ -359,7 +359,7 @@ Optional Parameters
   - Optional `:level` suffix specifies active level (0 or 1, default: 1)
   - Examples: `high0=70:1,high1=71:0`
 
-- **`time`** - Pulse duration in milliseconds for latching relays (default: 10)
+- **`time`** - Minimum pulse duration in milliseconds for latching relays (default: 10)
 
 - **`loud`** - Determines whether an active output increases or decreases the volume, equivalent to active level for outputs in binary/LED bar modes:
   - `1` - Active output increases volume (default)

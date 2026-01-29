@@ -46,8 +46,10 @@ static inline void gv_gpio_exp_out(int gpio, int level)
  * initialization
  * ========================================================= */
 
-bool gpio_volume_init(const gpio_volume_cfg_t *cfg_in)
+bool gpio_volume_init(void)
 {
+	const gpio_volume_cfg_t *cfg_in = config_gpio_volume_get();
+
 	if (!cfg_in)
 	{
 		ESP_LOGI(TAG, "Not configured");
@@ -58,15 +60,20 @@ bool gpio_volume_init(const gpio_volume_cfg_t *cfg_in)
 	memcpy(&cfg, cfg_in, sizeof(gpio_volume_cfg_t));
 
 	ESP_LOGI(TAG,
-			 "mode=%d dacmax=%d visumax=%d width=%d lsb0=%d:%d lsb1=%d:%d high0=%d:%d high1=%d:%d time=%d",
-			 cfg.mode, cfg.dacmax, cfg.visumax, cfg.width, 
-			 cfg.lsb0, cfg.lsb0_level, cfg.lsb1, cfg.lsb1_level,
-			 cfg.high0, cfg.high0_level, cfg.high1, cfg.high1_level, 
-			 cfg.time_ms);
+		"config: mode=%d width=%d lsb0=%d:%d lsb1=%d:%d high0=%d:%d high1=%d:%d time=%d loud=%d dacmax=%d visumax=%d",
+		cfg.mode, cfg.width, 
+		cfg.lsb0,  cfg.lsb0_level,  cfg.lsb1,  cfg.lsb1_level,
+		cfg.high0, cfg.high0_level, cfg.high1, cfg.high1_level, 
+		cfg.time_ms, cfg.loud, cfg.dacmax, cfg.visumax);
 
-	if (cfg.width <= 0 || cfg.lsb0 < 0)
+	if (cfg.width <= 0 || cfg.width > 32) {
+		ESP_LOGE(TAG, "Invalid width: %d (max 32)", cfg.width);
+		return false;
+	}
+
+	if (cfg.lsb0 < 0)
 	{
-		ESP_LOGE(TAG, "Invalid configuration");
+		ESP_LOGE(TAG, "Invalid configuration: lsb0<0");
 		return false;
 	}
 
@@ -161,7 +168,6 @@ static void latch_byte(uint32_t to_loud_mask, uint32_t to_quiet_mask)
 	ESP_LOGD(TAG, "Latch byte: LoudMask=0x%x QuietMask=0x%x", to_loud_mask, to_quiet_mask);
 
 	// Determine active/inactive levels based on configuration
-	// If lowON is true (1), active level is 1. If lowON is false (0), active level is 0.
 	// gpio_exp_set_level_multi takes a 'val' mask where bits match the desired level.
 	
 	// Create value masks for the 'active' state
@@ -341,8 +347,8 @@ static void vol_update_timer_cb(void* arg)
 	if (cfg.mode == GPIO_VOLUME_MODE_LEDBAR) {
 		// Calculate number of LEDs based on volume 0..100
 		int num_leds = (volume * cfg.width + 50) / 100;
-		if (num_leds > cfg.width) num_leds = cfg.width;
-		target_bits = (1 << num_leds) - 1;
+		if (num_leds < 0 || num_leds > cfg.width) num_leds = cfg.width;
+		target_bits = (1UL << num_leds) - 1;
 	} else {
 		// BINARY or LATCHING: map volume directly to binary value
 		uint32_t max_bits = (1UL << cfg.width) - 1;
@@ -375,7 +381,7 @@ static void vol_update_timer_cb(void* arg)
 	}
 	else if (cfg.mode == GPIO_VOLUME_MODE_BINARY || cfg.mode == GPIO_VOLUME_MODE_LEDBAR)
 	{
-		// For non-latching, we just set the levels.
+		// For non-latching just set the levels.
 		uint32_t val_mask = cfg.loud ? target_bits : ((~target_bits) & total_mask);
 		gpio_exp_set_level_multi(cfg.lsb0, total_mask, val_mask, NULL);
 		last_volume = target_bits;
@@ -394,20 +400,31 @@ void gpio_volume_update(unsigned gain)
 	// Store the pending gain
 	pending_gain = gain;
 
-	// Cancel any existing timer
-	if (vol_update_timer != NULL) {
-		esp_timer_stop(vol_update_timer);
+	if (vol_update_timer == NULL) {
+			esp_timer_create_args_t timer_args = {
+					.callback = vol_update_timer_cb,
+					.name = "vol_update"
+			};
+			esp_err_t err = esp_timer_create(&timer_args, &vol_update_timer);
+			if (err != ESP_OK) {
+					ESP_LOGE(TAG, "Failed to create timer: %s", esp_err_to_name(err));
+					return;  // CRITICAL: Must not continue!
+			}
 	} else {
-		// Create timer on first use
-		esp_timer_create_args_t timer_args = {
-			.callback = vol_update_timer_cb,
-			.name = "vol_update"
-		};
-		esp_timer_create(&timer_args, &vol_update_timer);
+		// Only stop if timer is active
+		if (esp_timer_is_active(vol_update_timer)) {
+			esp_err_t err = esp_timer_stop(vol_update_timer);
+			if (err != ESP_OK) {
+				ESP_LOGE(TAG, "Failed to stop timer: %s", esp_err_to_name(err));
+			}
+		}
 	}
 
-	// Start/restart the timer for 70ms
-	esp_timer_start_once(vol_update_timer, 70 * 1000); // microseconds
+// Start/restart the timer for 70ms
+	esp_err_t err = esp_timer_start_once(vol_update_timer, 70 * 1000);
+	if (err != ESP_OK) {
+			ESP_LOGE(TAG, "Failed to start timer: %s", esp_err_to_name(err));
+	}
 
 	ESP_LOGD(TAG, "Queue volume update: gain=%u (waiting 70ms)", gain);
 }
@@ -437,8 +454,8 @@ void gpio_volume_apply_startup_volume(unsigned gain)
 	{
 		ESP_LOGI(TAG, "Syncing relays: Gain %u -> Volume %u -> Binary 0x%02x", gain, volume, target_bits);
 		
-		// For startup, we must assume all relays are in an unknown state.
-		// We force all bits meant to be LOUD to pulse Loud,
+		// For startup assume all relays are in an unknown state.
+		// Force all bits meant to be LOUD to pulse Loud,
 		// and all bits meant to be QUIET (active in total_mask but 0 in target) to pulse Quiet.
 		
 		uint32_t to_loud = target_bits;

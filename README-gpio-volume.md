@@ -1,5 +1,4 @@
 # GPIO Volume Control
-# GPIO Volume Control
 
 GPIO Volume Control allows you to use GPIO pins via GPIO expanders to control external hardware such as relay-based attenuators or LED bar graphs.
 
@@ -41,7 +40,7 @@ mode=<mode>,lsb0=<pin>[:level],width=<bits>[,lsb1=<pin>[:level]][,high0=<pin>[:l
   - Optional `:level` suffix specifies active level (0 or 1, default: 1)
   - Examples: `high0=70:1,high1=71:0`
 
-- **`time`** - Pulse duration in milliseconds for latching relays (default: 10)
+- **`time`** - Minimum pulse duration in milliseconds for latching relays (default: 10); actual pulse duration can be one or two ticks longer.
 
 - **`loud`** - Determines whether an active output increases or decreases the volume, equivalent to active level for outputs in binary/LED bar modes:
   - `1` - Active output increases volume (default)
@@ -96,7 +95,7 @@ mode=latching,lsb0=64,lsb1=72,width=6,time=10
 
 - GPIO 64 ... 69: "Set to quiet" outputs
 - GPIO 72 ... 77: "Set to loud" outputs
-- Pulse duration: 10ms
+- Minimum pulse duration: 10ms
 
 **Example with active low relay drivers:**
 ```
@@ -202,7 +201,7 @@ This configuration may be useful when using different driver ICs for the two ban
 
 - **No output**: Check that GPIO expander is properly configured in `gpio_exp_config`
 - **Wrong polarity**: Adjust the `:level` suffix on pin configurations or the `loud` parameter
-- **Latching relays not firing**: Increase `time` parameter (try values from 5-20ms)
+- **Latching relays not firing**: Increase `time` parameter (try values from 10-50ms)
 - **Relays clicking but not changing state**: Check `:level` configuration matches your driver polarity
 - **Volume jumps**: Check that `width` matches your hardware bit depth
 - **DAC still controlling volume**: Set `dacmax=1` to force DAC to maximum
