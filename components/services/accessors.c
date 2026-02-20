@@ -291,7 +291,8 @@ const gpio_volume_cfg_t *config_gpio_volume_get()
 	if (!config || !*config)
 	{
 		if (config) free(config);
-		return NULL;  // ← THIS IS THE KEY FIX
+		initialized = true;
+		return &gpio_vol;
 	}
 
 	// Parse GPIOs with optional level suffixes using same helper as in gpio_volume.c
@@ -944,6 +945,12 @@ cJSON * get_Volume_GPIO(cJSON * list) {
 
 	// Use the parsed structure instead of raw string parsing in the UI loop
 	const gpio_volume_cfg_t *vol = config_gpio_volume_get();
+
+	// SAFETY CHECK
+	if (!vol) {
+		ESP_LOGE("VolumeGPIO", "Volume GPIO config is NULL");
+		return ilist;
+	}
 
 	// 1. List all GPIOs in the primary bank (lsb0)
 	if (vol->lsb0 >= 0 && vol->width > 0) {
